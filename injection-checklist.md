@@ -20,6 +20,47 @@ the decision checklist in SKILL.md.
   structure (not just values), e.g. arbitrary JSON passed straight into a
   `where` clause.
 
+## Search / free-text query inputs
+
+Search boxes are a recurring blind spot: teams add client-side filtering or
+a placeholder/debounce UX and treat that as "handled," leaving the actual
+server-side handler accepting arbitrary text — including script tags,
+SQL/NoSQL operators, or template syntax — with no validation at all.
+
+- Treat every search input the same as any other trust boundary: client-side
+  filtering, disabling, or debouncing is UX only and is never a substitute
+  for server-side validation on the Route Handler / Server Action that
+  actually executes the search.
+- Flag a search endpoint as a finding if the raw query string is passed
+  through to any of the following without validation first:
+  - A SQL/NoSQL query (`LIKE`/`ILIKE` concatenation, `$regex`, `$where`,
+    full-text search functions) — see SQL injection and NoSQL injection
+    above for the specific sink rules.
+  - A rendered results list via `dangerouslySetInnerHTML` or a raw HTML
+    sink (e.g. highlighting matched terms) — see XSS Rule 2/3 above.
+  - A shell command, template engine, or external API call built by
+    concatenation.
+- Minimum server-side validation for a search input, even when it's "just
+  a keyword field": enforce a max length, strip/reject control and null
+  characters, and validate against an explicit allowed character set or
+  Zod schema (e.g. `z.string().trim().max(N).regex(...)`) rather than
+  accepting an unbounded free-text string as-is.
+- Do not attempt to blocklist "code-looking" patterns (`<script>`, `SELECT`,
+  `{{`, etc.) as the primary defense — that's a blocklist, not a boundary,
+  and it's trivially bypassed. The actual fix is: (1) parameterize/allowlist
+  the query itself so structure can't be influenced, and (2) constrain the
+  input shape at the schema boundary so malformed/oversized/control-character
+  payloads are rejected outright, regardless of what they contain.
+- If search results are highlighted, faceted, or reflected back into the
+  page in any form, re-check that reflected value against XSS Rule 2/3 —
+  a search term is attacker-controlled input like any other, even though it
+  "just came back from what the user typed."
+- Severity: **HIGH** if unvalidated search input reaches a raw HTML sink or
+  an unparameterized query with attacker influence over structure;
+  **MEDIUM** if input is unbounded/unvalidated but the sink itself is
+  already safely parameterized (missing defense-in-depth, not a confirmed
+  exploit path).
+
 ## Command injection
 
 - Flag any use of shell-executing APIs (`child_process.exec`, `execSync`,

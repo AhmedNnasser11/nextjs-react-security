@@ -61,7 +61,9 @@ Walk the codebase in this order, noting what exists and what's missing:
 4. API routes / Route Handlers (`app/**/route.ts`)
 5. Server Actions (`"use server"` functions, form actions)
 6. Middleware / proxy (`middleware.ts`, edge config)
-7. Forms and mutation paths (client → server data flow)
+7. Forms and mutation paths (client → server data flow), including search/
+   filter inputs specifically — check whether the handler behind them
+   validates server-side or merely relies on client-side filtering/UX
 8. Environment variable usage (`.env*`, `NEXT_PUBLIC_*` references)
 9. Dangerous HTML rendering (`dangerouslySetInnerHTML`, markdown/rich-text)
 10. External fetches (server-side `fetch`/HTTP clients, webhook handlers)
