@@ -77,11 +77,16 @@ as relevant to what Phase 1 found. Use the severity model below — do not
 invent your own severities.
 
 ### Phase 4 — Verify against current sources
-For any claim about framework/library security behavior that could have
-changed since training, verify against the current official docs before
-stating it as fact. See `references/source-priority.md` for the source
-hierarchy and citation expectations. Never fabricate a documentation
-reference — if you can't verify it, say so explicitly instead of guessing.
+For any claim about framework/library/web-platform security behavior that
+could have changed since training, actively use the available web search
+and web fetch tools to pull the current page from Next.js docs, React docs,
+MDN (for Web Platform APIs — cookies, CSP, `fetch`, headers), the relevant
+package's own docs, OWASP, GitHub Advisories, or NVD before stating the
+claim as fact. Do not rely on memorized/training-time knowledge for
+anything version- or advisory-specific. See `references/source-priority.md`
+for the full hierarchy and exact tool-use steps. Never fabricate a
+documentation reference — if verification isn't possible, say so explicitly
+instead of guessing.
 
 ### Phase 5 — Propose the safest minimal change
 For each confirmed finding, propose the smallest change that closes the gap
@@ -155,8 +160,10 @@ finding — note it as a candidate needing more investigation instead.
 
 Load only what's relevant to the current audit:
 
-- `references/source-priority.md` — authoritative source hierarchy and how
-  to verify current framework/library behavior before making claims.
+- `references/source-priority.md` — authoritative source hierarchy
+  (Next.js, React, MDN, package docs, OWASP, GitHub Advisories, NVD, vendor
+  advisories) and the concrete steps for actually searching/fetching them
+  before making a version- or advisory-specific claim.
 - `references/nextjs-security-checklist.md` — App Router-specific model:
   Server/Client Components, Server Actions, Route Handlers, middleware,
   caching/revalidation, CSRF posture, SSRF, uploads, edge/runtime nuances.

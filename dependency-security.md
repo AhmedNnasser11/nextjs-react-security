@@ -5,9 +5,20 @@
 - Run the project's package manager audit command (`npm audit`,
   `pnpm audit`, `yarn npm audit`, etc.) where available, and review the
   actual output rather than assuming a result.
-- Cross-reference flagged packages against GitHub Advisory Database and, if
-  needed, NVD for severity and exploitability details (see
-  `source-priority.md`).
+- Cross-reference flagged packages against GitHub Advisory Database first
+  (fastest path to affected/patched version ranges for npm packages), or
+  query the OSV.dev API directly (`POST https://api.osv.dev/v1/query`) for
+  a structured, no-auth answer keyed on package name + ecosystem + version.
+  Then CVE.org/NVD for the canonical record and CVSS scoring if more detail
+  is needed. Check the CISA KEV catalog too — a vulnerability under active
+  exploitation should be prioritized above its CVSS score alone would
+  suggest. See `source-priority.md` for URLs and how to actually fetch
+  them.
+- Check unfamiliar or newly-added packages against Socket.dev
+  (https://socket.dev/npm/package/<name> or its API) for supply-chain risk
+  signals — typosquatting, obfuscated install scripts, sudden maintainer
+  changes — which a CVE database won't catch since it isn't a "known
+  vulnerability" in the traditional sense.
 - Check for packages that are unmaintained/abandoned where a maintained
   alternative exists and the package is security-relevant (auth, crypto,
   input parsing, sanitization).
