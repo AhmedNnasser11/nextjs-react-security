@@ -32,26 +32,151 @@ the decision checklist in SKILL.md.
 
 ## XSS
 
-Audit every HTML/DOM sink:
+Audit every HTML/DOM sink. Rules 1–4 below are project-mandated zero-tolerance
+architecture, not general suggestions — apply them as written, not as one
+option among several.
 
-- `dangerouslySetInnerHTML` — is the source trusted, or does it include any
-  user- or third-party-controlled content? If untrusted content must be
-  rendered as HTML, require sanitization with a maintained sanitizer
-  library and validate allowed tags/attributes/protocols; don't hand-roll
-  a regex sanitizer.
+### Rule 1 — Safe DOM injection for widgets/scripts (the `useRef` standard)
+
+Applies to: any third-party widget, external JS library, custom HTML
+element, or dynamic *executable* content (anything that isn't plain
+user-authored rich text — see Rule 2 for that case).
+
+Required architecture, exactly in this order:
+
+1. The component must be `"use client"`.
+2. External JS libraries load via Next.js `<Script>`, not a manually
+   injected `<script>` tag.
+3. DOM insertion happens inside `useEffect`, targeting a container via
+   `useRef` (never targeting `document.body`/`document.head` directly from
+   inside a component).
+4. Elements are created exclusively with `document.createElement()`,
+   attributes set exclusively with `.setAttribute()`, and insertion happens
+   exclusively via `containerRef.current.appendChild()` (or equivalent DOM
+   node methods — `insertBefore`, etc. — never string-based insertion).
+5. `.innerHTML`, `.outerHTML`, `document.write()`, and template-literal HTML
+   strings are **never** used to construct or inject this content, under
+   any circumstance, including for "trusted" first-party widget code.
+
+Flag any deviation from this exact pattern for widget/script injection as a
+**HIGH** finding (CRITICAL if the injected content can include
+attacker-influenced data, e.g. a URL parameter or user-configurable widget
+ID passed into the script).
+
+If the widget/script needs any sensitive data (API keys, tokens, auth
+state, non-`NEXT_PUBLIC_` env vars) to configure or authenticate itself,
+Rule 1's DOM pattern alone is not sufficient — see Rule 4 for the required
+Server/Client split before this pattern is applied.
+
+### Rule 2 — Rich text rendering: `dangerouslySetInnerHTML` is conditional, not banned
+
+Applies to: rendering user-authored formatted text from a rich text editor
+or similar source (`<b>`, `<p>`, `<i>`, links, lists — structural markup,
+not arbitrary executable content).
+
+- `dangerouslySetInnerHTML` **may** be used for this case, but **only** when
+  the HTML has been sanitized immediately before injection by a maintained
+  sanitizer:
+  - **DOMPurify, pinned to version ≥ 3.4.5** (2026 saw multiple distinct
+    bypasses — a rawtext-element regex gap, a prototype-pollution-based
+    tag/attribute injection, and a default-allowed `<selectedcontent>`
+    re-clone bypass — all fixed by 3.4.5; anything older is a known-bad
+    version, not a hypothetical risk), **or**
+  - `sanitize-html`, configured with an explicit allowlist of tags/
+    attributes/protocols rather than its permissive defaults.
+- Sanitization must happen at render time (or immediately before storage
+  **and** immediately before every render path, if sanitizing once at
+  write time) — never assume a value sanitized once upstream is still safe
+  at every place it's later rendered.
+- **CRITICAL RULE — zero tolerance:** any `dangerouslySetInnerHTML` call
+  that renders unsanitized data — user input, third-party API responses,
+  CMS content, anything not hard-coded by the developer — is a confirmed
+  finding regardless of how unlikely exploitation seems. Flag it and
+  refactor immediately to add sanitization; do not defer or downgrade
+  severity because the field "seems safe in practice."
+- Severity: **CRITICAL** if the unsanitized source is directly
+  attacker-controlled (form input, URL param, uploaded content); **HIGH**
+  if it's an indirect but still untrusted source (third-party API,
+  webhook payload, CMS/database content not written exclusively by trusted
+  admins).
+
+### Rule 3 — Input validation rejects raw executables
+
+Applies to: every API Route Handler and every Server Action.
+
+- Reject payloads containing raw executable content (script tags, event
+  handler attributes, `javascript:`/`data:` URLs, template/expression
+  syntax) at the validation boundary — before the value is ever persisted
+  or passed downstream — not only at render time. Rendering-time
+  sanitization (Rule 2) is a second, independent layer; it does not excuse
+  skipping input-side validation.
+- Prefer schema validation (Zod or equivalent) with an explicit shape,
+  rather than a blocklist regex trying to catch "dangerous" patterns —
+  reject unexpected fields and unexpected structure outright.
+- This applies even to fields intended to hold rich text: input-side
+  validation should still reject anything outside the rich-text editor's
+  own expected output shape (e.g. a JSON/AST format from the editor, not
+  arbitrary raw HTML from an API caller bypassing the UI entirely).
+
+### Rule 4 — The Hybrid Component Pattern (Server-First Approach) for widgets/scripts
+
+Applies to: any third-party widget or dynamic script from Rule 1 that
+requires sensitive data — API keys, auth tokens, session/user state, or any
+environment variable not prefixed `NEXT_PUBLIC_` — to configure, initialize,
+or authenticate itself. This extends Rule 1; it does not replace it. If the
+widget needs no sensitive data at all, Rule 1 alone applies.
+
+Required architecture, exactly in this order:
+
+1. **Data fetching (Server Component):** retrieve all sensitive data,
+   server-only env vars, and authentication state inside a Server
+   Component. This data must never be fetched, decrypted, or derived
+   inside a Client Component.
+2. **Safe injection (Client Component):** the Server Component passes only
+   the specific, already-fetched values the widget actually needs as plain
+   props to a minimal, dedicated Client Component (`"use client"`) — not
+   the full session/user object, not raw credentials the widget doesn't
+   need, and nothing beyond what's required for that widget's
+   configuration.
+3. **Execution:** the Client Component's sole responsibility is DOM
+   injection using the exact `useRef` + `document.createElement()` /
+   `.setAttribute()` / `appendChild()` pattern from Rule 1. It does not
+   independently fetch, request, or derive any additional sensitive data.
+4. **Enforcement:** flag any Client Component that fetches sensitive data
+   directly (an API call, a direct env var reference, a client-side auth
+   check used to gate secret-bearing logic) when that data was available
+   to — or should have been resolved in — a parent Server Component.
+   Refactor into the Server/Client pair described above. Treat this as a
+   **HIGH** finding if the exposed value is a live credential/token/key
+   reachable in the client bundle or network tab (**CRITICAL** if it grants
+   write/administrative access to a third-party service); **MEDIUM** if the
+   issue is unnecessary sensitive-data plumbing into client code without an
+   actual secret ending up client-visible yet (e.g. an internal user ID
+   passed further than needed).
+
+This rule composes with the boundary checks in
+`nextjs-security-checklist.md`'s "Environment variables" and "Server
+Components vs Client Components" sections — treat a violation here as both
+an XSS-adjacent DOM-injection finding (wrong component owns wrong
+responsibility) and a secrets-exposure finding (Section 11 of the parent
+skill) simultaneously; report it once, but note both angles in the
+finding's Impact field.
+
+### Other XSS sinks (still in scope, same trace-back requirement)
+
 - Markdown/rich-text rendering — confirm the renderer doesn't allow raw
   HTML passthrough or unsafe link/image protocols unless explicitly
-  intended and sanitized.
+  intended and sanitized per Rule 2.
 - `javascript:` and `data:` URLs in `href`/`src` built from user input —
   validate protocol against an allowlist (`http:`/`https:`/`mailto:` as
   appropriate) before rendering as a link/attribute.
-- Direct DOM manipulation (`innerHTML`, `document.write`, manual DOM APIs
-  in `useEffect`) bypassing React's normal escaping.
-- Third-party embedded HTML/widgets — confirm the source is trusted and
-  the embed is scoped (iframe sandboxing where applicable).
+- Third-party embedded HTML/widgets not covered by Rule 1 (e.g. iframes) —
+  confirm the source is trusted and the embed is scoped (sandboxing where
+  applicable).
 - Do not claim "React escapes everything" as a blanket statement — it
-  escapes text content in JSX by default, but the sinks above bypass that,
-  and attributes like `href`/`src` still need protocol validation.
+  escapes text content in JSX by default, but `dangerouslySetInnerHTML`,
+  direct DOM manipulation, and attribute-based sinks (`href`/`src`) bypass
+  that and need the rules above.
 
 ## Template / expression injection
 

@@ -25,6 +25,11 @@
 - Check for suspicious or unnecessary packages: dependencies with no clear
   usage in the codebase, or packages pulled in for a single trivial utility
   that could be inlined instead of adding supply-chain surface.
+- If the project uses `dangerouslySetInnerHTML` with a sanitizer (per
+  `injection-checklist.md` Rule 2), verify the installed DOMPurify version
+  is ≥ 3.4.5, or that `sanitize-html` is on a current patched release —
+  treat an older pin as a confirmed finding, not just a hygiene note, since
+  it's a known-exploitable sanitizer bypass rather than a theoretical gap.
 
 ## Update policy
 
