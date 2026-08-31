@@ -64,6 +64,34 @@ every sensitive operation. Never trust:
   without integrity protection (signing) if the app relies on its
   contents for authorization decisions.
 
+## Rate limiting and brute-force protection
+
+- Confirm unauthenticated, security-sensitive endpoints — login,
+  registration, password reset, MFA/token issuance, and anything that
+  verifies or issues credentials — have some server-side rate limiting or
+  throttling. Absence on these endpoints is the HIGH "missing rate
+  limiting" finding from the severity model; don't inflate it onto
+  endpoints that already require authentication unless they enable
+  enumeration or resource exhaustion.
+- Lockout-based approaches carry their own DoS consideration (an attacker
+  can deliberately lock out legitimate users) — prefer throttling, delay,
+  or exponential backoff unless the app's threat model specifically calls
+  for hard lockout.
+- When proposing a fix, prefer what's already in the project (an existing
+  cache/Redis client, an existing middleware pattern) or a minimal
+  self-contained implementation; a new rate-limiting dependency needs the
+  justification required by SKILL.md's ground rules and
+  `dependency-security.md`.
+
+## Security-relevant logging
+
+- Confirm security-relevant events are recorded somewhere reviewable:
+  failed and successful logins, password changes, role/permission changes,
+  and admin actions where the app has them. Missing coverage is the MEDIUM
+  "missing security logging" finding from the severity model — not HIGH.
+- Never log the sensitive values themselves (passwords, raw session
+  tokens, full secrets) — log identifiers and event types, not secrets.
+
 ## CSRF
 
 - Determine whether CSRF is actually a live risk given the auth mechanism:

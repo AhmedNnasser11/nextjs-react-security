@@ -1,4 +1,4 @@
-"# nextjs-react-security
+# nextjs-react-security
 
 ## Overview
 
@@ -10,16 +10,18 @@ The skill acts as a **Senior Application Security Engineer**, performing detaile
 
 ### Security Checklists & References
 
+All checklists and reference files live under `references/`:
+
 - **[nextjs-security-checklist.md](nextjs-security-checklist.md)** — Framework-specific security for Next.js App Router, Server Actions, Route Handlers, middleware, and configuration
-- **[auth-authorization-checklist.md](auth-authorization-checklist.md)** — Authentication strategies, session management, token validation, and authorization checks
+- **[auth-authorization-checklist.md](auth-authorization-checklist.md)** — Authentication strategies, session management, token validation, authorization checks, rate limiting, and security logging
 - **[injection-checklist.md](injection-checklist.md)** — SQL injection, NoSQL injection, command injection, template injection, and input sanitization patterns
 - **[dependency-security.md](dependency-security.md)** — Vulnerability scanning, supply chain security, and dependency management best practices
 - **[security-headers.md](security-headers.md)** — HTTP security headers (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
-- **[source-priority.md](source-priority.md)** — Security issue severity classification and prioritization
+- **[source-priority.md](source-priority.md)** — Authoritative source hierarchy (official docs, advisories, CVE/NVD) and the verification workflow for version- and advisory-specific claims
 
 ### Core Documentation
 
-- **[SKILL.md](SKILL.md)** — Master skill definition, non-negotiable ground rules, and audit workflow phases
+- **[SKILL.md](SKILL.md)** — Master skill definition, non-negotiable ground rules, audit workflow phases, severity model, and report format
 
 ## Key Principles
 
@@ -34,7 +36,8 @@ The skill acts as a **Senior Application Security Engineer**, performing detaile
 1. **Audit a project** — Load the relevant checklist(s) for the application type
 2. **Identify vulnerabilities** — Follow the structured audit workflow to inspect code
 3. **Reference guidelines** — Use specific checklists when addressing authentication, injection, headers, or dependencies
-4. **Prioritize fixes** — Use source-priority.md to classify and schedule remediations
+4. **Verify claims** — Use source-priority.md to check version- and advisory-specific claims against current, authoritative sources before stating them as fact
+5. **Prioritize fixes** — Use the severity model in SKILL.md to classify and schedule remediations
 
 ## Scope
 
@@ -51,6 +54,7 @@ This skill covers:
 - Secrets management
 - File uploads & handling
 - CSRF, SSRF, XSS prevention
+- Rate limiting & security logging
 
 ## Not Included
 
@@ -61,4 +65,4 @@ This skill covers:
 
 ---
 
-**Use Case:** Security engineers, architects, and developers auditing or hardening Next.js applications for production deployment." 
+**Use Case:** Security engineers, architects, and developers auditing or hardening Next.js applications for production deployment.
