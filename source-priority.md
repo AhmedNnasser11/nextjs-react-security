@@ -19,6 +19,7 @@ Always verify current documentation/advisories before making claims about:
 ## Source hierarchy (highest to lowest priority)
 
 1. Official Next.js documentation — https://nextjs.org/docs
+   Official Next.js Blog — https://nextjs.org/blog (for release notes, architecture updates, and security announcements)
 2. Official React documentation — https://react.dev
 3. MDN Web Docs — https://developer.mozilla.org — for Web Platform behavior
    itself (cookie attributes, CSP directives, `fetch`/`URL`/`Request`
