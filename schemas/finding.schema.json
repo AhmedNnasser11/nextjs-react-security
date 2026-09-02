@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Security Finding",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "severity",
+    "confidence",
+    "status",
+    "category",
+    "evidence",
+    "minimal_remediation",
+    "verification",
+    "source_evidence",
+    "limitations"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "severity": {
+      "enum": [
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ]
+    },
+    "status": {
+      "enum": [
+        "CONFIRMED",
+        "POTENTIAL",
+        "HARDENING",
+        "UNVERIFIED",
+        "FIXED",
+        "VERIFIED"
+      ]
+    },
+    "category": {
+      "type": "string"
+    },
+    "affected_file": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "entry_point": {
+      "type": "string"
+    },
+    "reachability": {
+      "type": "string"
+    },
+    "attacker_controlled_input": {
+      "type": "string"
+    },
+    "trust_boundary": {
+      "type": "string"
+    },
+    "validation": {
+      "type": "string"
+    },
+    "authentication": {
+      "type": "string"
+    },
+    "authorization": {
+      "type": "string"
+    },
+    "dangerous_sink": {
+      "type": "string"
+    },
+    "exploit_path": {
+      "type": "string"
+    },
+    "impact": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "existing_mitigations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "why_mitigation_is_insufficient": {
+      "type": "string"
+    },
+    "minimal_remediation": {
+      "type": "string"
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

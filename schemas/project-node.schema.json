@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project Graph",
+  "type": "object",
+  "required": [
+    "project",
+    "framework",
+    "runtime",
+    "dependencies",
+    "entry_points"
+  ],
+  "properties": {
+    "project": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "object"
+    },
+    "runtime": {
+      "type": "object"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "entry_points": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "auth": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "authorization": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "database": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "storage": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "external_services": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "server_actions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "route_handlers": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "webhooks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "dangerous_sinks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,179 @@
+version: "1.0"
+sources:
+  - id: github-advisory-database
+    name: GitHub Advisory Database
+    category: vulnerability_database
+    authority: primary
+    purpose: known vulnerabilities affecting open-source packages
+    site_url: https://github.com/advisories?query=ecosystem%3Anpm
+    api_url: https://api.github.com/advisories
+    api_method: GET
+    format: JSON
+    authentication: optional
+    freshness: live
+    priority: 100
+    description: >
+      Primary source for GitHub security advisories affecting open-source packages.
+    retrieval_hint: >
+      Query npm advisories by exact package/version where possible. Preserve GHSA/CVE,
+      vulnerable_version_range, first_patched_version, severity, CWE, timestamps and URLs.
+    enabled: true
+
+  - id: nextjs-security-advisories
+    name: Next.js Security Advisories
+    category: framework_security
+    authority: primary
+    purpose: Next.js-specific security advisories
+    site_url: https://github.com/vercel/next.js/security/advisories
+    api_url: https://api.github.com/repos/vercel/next.js/security/advisories
+    api_method: GET
+    format: JSON
+    authentication: optional
+    freshness: live
+    priority: 100
+    description: >
+      Primary project-specific source for vulnerabilities affecting Next.js.
+    retrieval_hint: >
+      Query whenever Next.js is present. Correlate exact installed and lockfile-resolved
+      Next.js versions against advisory ranges. Treat current advisories as source evidence,
+      not automatic project findings.
+    enabled: true
+
+  - id: nodejs-security-advisories
+    name: Node.js Security Advisories
+    category: runtime_security
+    authority: primary
+    purpose: Node.js runtime vulnerabilities
+    site_url: https://github.com/nodejs/security-wg
+    api_url: https://github.com/nodejs/security-wg
+    api_method: repository
+    format: repository
+    authentication: none
+    freshness: live
+    priority: 95
+    description: >
+      Runtime-security source for Node.js security information.
+    retrieval_hint: >
+      Query when Node.js runtime version or server-side deployment may be affected.
+      Correlate exact runtime version and deployment platform.
+    enabled: true
+
+  - id: osv
+    name: OSV.dev
+    category: vulnerability_database
+    authority: structured_primary
+    purpose: machine-readable open-source vulnerability intelligence
+    site_url: https://osv.dev/
+    api_url: https://api.osv.dev/v1/query
+    batch_api_url: https://api.osv.dev/v1/querybatch
+    api_method: POST
+    format: JSON
+    authentication: none
+    freshness: live
+    priority: 98
+    description: >
+      Structured vulnerability database designed for programmatic package/version
+      and batch queries.
+    retrieval_hint: >
+      Prefer exact package + ecosystem + version queries. Use querybatch for many packages.
+      Preserve all returned IDs and modified timestamps; fetch full vulnerability records
+      when normalization requires affected ranges.
+    enabled: true
+
+  - id: snyk
+    name: Snyk Vulnerability Database
+    category: vulnerability_database
+    authority: secondary_structured
+    purpose: package vulnerability intelligence
+    site_url: https://security.snyk.io/vuln/npm
+    api_url: https://snyk.io/api
+    api_method: API
+    format: JSON/API
+    authentication: API-dependent
+    freshness: live
+    priority: 90
+    description: >
+      Secondary vulnerability source for affected ranges, severity and remediation context.
+    retrieval_hint: >
+      Use primarily for corroboration and discrepancy analysis after primary/structured
+      sources, subject to the configured Snyk API contract and credentials.
+    enabled: true
+
+  - id: socket
+    name: Socket.dev
+    category: supply_chain
+    authority: specialized_security_intelligence
+    purpose: npm supply-chain and malicious-package intelligence
+    site_url: https://socket.dev/blog/category/security
+    api_url: https://api.socket.dev
+    api_method: REST
+    format: JSON
+    authentication: API-dependent
+    freshness: live
+    priority: 92
+    description: >
+      Specialized supply-chain intelligence for package behavior, malicious activity,
+      suspicious capabilities, dependency risk and project/package scans.
+    retrieval_hint: >
+      Use for new, unfamiliar, suspicious, security-sensitive, compromised-looking or
+      high-impact dependencies. Prefer package issues/scores and full scans where configured.
+      Keep results in the supply-chain dimension.
+    enabled: true
+
+  - id: portswigger-research
+    name: PortSwigger Web Security Research
+    category: security_research
+    authority: expert_research
+    purpose: modern web application attack research
+    site_url: https://portswigger.net/research
+    api_url: https://portswigger.net/research/rss
+    api_method: GET
+    format: RSS/XML
+    authentication: none
+    freshness: live
+    priority: 85
+    description: >
+      Expert web-security research covering XSS, SSRF, authentication, parser differentials
+      and emerging application attack techniques.
+    retrieval_hint: >
+      Query for emerging attack techniques, browser behavior, XSS, SSRF, request smuggling,
+      parser abuse, authentication bypasses or novel exploitation patterns.
+    enabled: true
+
+  - id: owasp-wstg
+    name: OWASP Web Security Testing Guide
+    category: methodology
+    authority: industry_standard
+    purpose: systematic web application security testing methodology
+    site_url: https://owasp.org/www-project-web-security-testing-guide/
+    api_url: https://owasp.org/www-project-web-security-testing-guide/
+    api_method: documentation
+    format: HTML
+    authentication: none
+    freshness: versioned
+    priority: 88
+    description: >
+      Industry methodology for systematic web application security testing.
+    retrieval_hint: >
+      Use to validate audit coverage and testing methodology. Never treat a test case's
+      existence as evidence that the target project is vulnerable.
+    enabled: true
+
+  - id: daily-swig
+    name: The Daily Swig
+    category: security_news
+    authority: secondary
+    purpose: web-security news and vulnerability reporting
+    site_url: https://portswigger.net/daily-swig/web-security
+    api_url: https://portswigger.net/daily-swig/web-security
+    api_method: GET
+    format: HTML
+    authentication: none
+    freshness: live
+    priority: 65
+    description: >
+      Secondary web-security news source for discovery and context.
+    retrieval_hint: >
+      Use for recent discovery/context only. Verify important claims against primary or
+      structured sources before marking them confirmed.
+    enabled: true

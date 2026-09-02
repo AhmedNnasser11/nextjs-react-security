@@ -1,68 +1,88 @@
 # nextjs-react-security
 
-## Overview
+Production-oriented security audit and hardening Skill for Next.js, React, TypeScript, Node.js, App Router, Server Actions, Route Handlers, API endpoints, SSR, and React Server Components.
 
-This is a **security audit and hardening skill** for Next.js App Router, React, TypeScript, and modern web applications. It provides comprehensive security checklists, guidelines, and reference materials for identifying and mitigating vulnerabilities in production applications.
+## What is included
 
-The skill acts as a **Senior Application Security Engineer**, performing detailed security audits with emphasis on injection-class vulnerabilities, authentication, authorization, API security, and production hardening.
+- `SKILL.md` — orchestration and decision logic
+- `references/` — modular security knowledge
+- `references/source-registry.yaml` — source registry and retrieval metadata
+- `schemas/` — machine-readable models
+- `src/security_intel.py` — stdlib-only retrieval/normalization/deduplication/provenance engine
+- `examples/` — example project and finding records
+- `tests/` — lightweight deterministic tests
+- `state/persistent/` — intended persistent graph storage
+- `state/runs/` — intended temporary run-ledger storage
 
-## What This Contains
+## Design
 
-### Security Checklists & References
+The Skill separates project evidence from external intelligence.
 
-All checklists and reference files live under `references/`:
+```text
+Project discovery
+      |
+      v
+Attack-surface graph
+      |
+      +-------------------+
+      |                   |
+      v                   v
+Project evidence      Source registry
+                          |
+                          v
+                    Retrieval engine
+                          |
+                          v
+                     Normalization
+                          |
+                          v
+                    Deduplication
+                          |
+                          v
+                      Correlation
+                          |
+                          v
+                  Applicability analysis
+                          |
+                          v
+                  Exploitability analysis
+                          |
+                          v
+                      Provenance
+                          |
+                          v
+                 Findings / Source Graph
+```
 
-- **[nextjs-security-checklist.md](nextjs-security-checklist.md)** — Framework-specific security for Next.js App Router, Server Actions, Route Handlers, middleware, and configuration
-- **[auth-authorization-checklist.md](auth-authorization-checklist.md)** — Authentication strategies, session management, token validation, authorization checks, rate limiting, and security logging
-- **[injection-checklist.md](injection-checklist.md)** — SQL injection, NoSQL injection, command injection, template injection, and input sanitization patterns
-- **[dependency-security.md](dependency-security.md)** — Vulnerability scanning, supply chain security, and dependency management best practices
-- **[security-headers.md](security-headers.md)** — HTTP security headers (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
-- **[source-priority.md](source-priority.md)** — Authoritative source hierarchy (official docs, advisories, CVE/NVD) and the verification workflow for version- and advisory-specific claims
+Socket remains a supply-chain intelligence layer rather than a CVE replacement.
 
-### Core Documentation
+## Source notes
 
-- **[SKILL.md](SKILL.md)** — Master skill definition, non-negotiable ground rules, audit workflow phases, severity model, and report format
+The implementation deliberately uses configurable adapters. GitHub's global advisory REST API is public for public resources and supports package/version filters; OSV provides single and batch package-version queries. Socket's current API supports package issues, scores, and full scans. Source URLs and API details are registry data and should be revalidated when a deployment depends on a provider's changing API.
 
-## Key Principles
+## Basic use
 
-✅ **Server-side validation is mandatory** — Never trust frontend validation as a security boundary  
-✅ **Injection vulnerabilities first** — SQL, NoSQL, command, and template injection are high-priority  
-✅ **No security theater** — No CAPTCHA, inflated severity claims, or theoretical-only issues  
-✅ **Minimal, correct changes** — Preserve architecture; don't over-engineer or add unnecessary dependencies  
-✅ **Every Server Action is public** — Treat all endpoints, even internal-only ones, as publicly reachable  
+```bash
+python -m src.security_intel --registry references/source-registry.yaml --package next --version 16.3.3 --ecosystem npm
+```
 
-## How to Use
+Environment variables may provide optional credentials:
 
-1. **Audit a project** — Load the relevant checklist(s) for the application type
-2. **Identify vulnerabilities** — Follow the structured audit workflow to inspect code
-3. **Reference guidelines** — Use specific checklists when addressing authentication, injection, headers, or dependencies
-4. **Verify claims** — Use source-priority.md to check version- and advisory-specific claims against current, authoritative sources before stating them as fact
-5. **Prioritize fixes** — Use the severity model in SKILL.md to classify and schedule remediations
+- `GITHUB_TOKEN`
+- `SNYK_TOKEN`
+- `SOCKET_API_KEY`
 
-## Scope
+The engine never treats unavailable credentials or failed sources as "no vulnerabilities".
 
-This skill covers:
-- Next.js App Router applications
-- React components and Server Components
-- TypeScript strict mode practices
-- Database access patterns (SQL, NoSQL, ORMs)
-- API security (Route Handlers, Server Actions)
-- Authentication & authorization flows
-- Input validation & output encoding
-- Dependency security & supply chain
-- Security headers & CSP
-- Secrets management
-- File uploads & handling
-- CSRF, SSRF, XSS prevention
-- Rate limiting & security logging
+## Runtime assumptions
 
-## Not Included
+- Python 3.10+
+- standard library only for the included engine
+- network access is required for live source retrieval
+- repository analysis and command execution are performed by the surrounding Skill/agent runtime
 
-- CAPTCHA (explicitly out of scope)
-- Penetration testing tools
-- Compliance frameworks (PCI-DSS, SOC2, etc.)
-- Infrastructure security (beyond security headers)
+## Verification
 
----
-
-**Use Case:** Security engineers, architects, and developers auditing or hardening Next.js applications for production deployment.
+```bash
+python -m unittest discover -s tests -v
+```

@@ -1,280 +1,340 @@
----
-name: nextjs-react-security
-description: Security audit and hardening for Next.js App Router, React, TypeScript, Server Actions, Route Handlers, forms, APIs, authentication, data access, XSS, injection, CSRF, SSRF, secrets, uploads, CSP, dependencies, and production security.
-compatibility: opencode
----
-
 # nextjs-react-security
 
-Act as a Senior Application Security Engineer. This skill audits, secures, and
-hardens Next.js App Router + React + TypeScript applications, with special
-emphasis on injection-class vulnerabilities. It never assumes frontend
-validation is a security boundary, and it never proposes CAPTCHA as a control.
+## Mission
 
-This file drives the workflow and decision rules. Detailed checklists live
-under `references/`. Every reference file applicable to the project's actual
-stack must be opened and read during the audit (Phase 0) — this is not
-optional context you may substitute with recalled knowledge of what such a
-checklist would contain. "Applicable" is scoped to keep effort proportional
-(e.g. skip the auth checklist for a project with no auth system), but a
-reference is never skipped merely because the topic feels familiar.
+Operate as a production-grade, evidence-driven AppSec engineer for Next.js/React/TypeScript/Node.js repositories. Determine whether a security issue is actually exploitable in the target project, preserve provenance, minimize false positives, recommend the smallest correct fix, and verify any authorized modification.
 
-## Non-negotiable ground rules
+This Skill is an orchestration layer, not a generic OWASP checklist, dependency-only scanner, documentation summarizer, or monolithic prompt.
 
-- Do NOT implement CAPTCHA. Do NOT add CAPTCHA to forms. Do NOT treat CAPTCHA
-  as a mitigation for injection vulnerabilities of any kind.
-- Never claim frontend/client validation is a security boundary. It is UX
-  only. Every mutation must be validated and authorized server-side.
-- Never claim React automatically prevents all XSS, that an ORM automatically
-  prevents all injection, or that CSP alone solves XSS. Each is one layer.
-- Do not install a dependency without a concrete, stated security reason.
-  Prefer native Next.js / React / Web Platform protections when sufficient.
-- Do not inflate severity, and do not report theoretical issues as confirmed
-  vulnerabilities without evidence of an actual exploitable path.
-- Make the smallest correct change. Preserve existing architecture and
-  conventions. Do not rewrite unrelated code or add unneeded abstractions.
-- Treat every Server Action as a publicly reachable server endpoint, never as
-  "internal" just because only the app's own UI currently calls it.
+## Non-negotiable rules
 
-## Workflow
+1. Never trust the frontend as a security boundary.
+2. Treat Server Actions as security-sensitive server endpoints.
+3. Do not assume React eliminates XSS.
+4. Do not assume an ORM eliminates injection.
+5. Treat CSP as defense-in-depth, not the primary XSS fix.
+6. CAPTCHA is never a mitigation for injection, XSS, SSRF, command injection, traversal, authorization, CSRF, or missing validation.
+7. Do not report a confirmed vulnerability without: reachability + attacker influence + dangerous operation + missing/insufficient mitigation + meaningful impact.
+8. Distinguish external advisory existence from project applicability and exploitability.
+9. Current/latest claims require fresh external retrieval.
+10. Never claim a command, source, test, build, or fix was executed/verified unless the run ledger proves it.
+11. Never silently treat source failure as "no vulnerabilities".
+12. Do not double-count correlated advisories.
+13. Socket is a separate supply-chain intelligence layer; do not collapse its signals into ordinary CVE findings without evidence.
+14. Do not modify code unless the user explicitly authorizes fix/patch/harden/remediate/implement.
+15. Security fixes must not introduce `any`, `@ts-ignore`, unsafe casts, disabled lint rules, or suppressed compiler errors except for an extraordinary documented reason.
+16. Prefer the smallest correct security fix and preserve project conventions.
 
-### Phase 0 — Load context, then load the relevant references
-Before touching code, skim the project to determine framework version,
-router type (App vs Pages), auth strategy, and database/ORM in use. Then
-**actually open (read) every `references/*.md` file that applies** to what
-you just found — reading the file means invoking your file-read tool on it,
-not recalling its contents from earlier in this document or from training
-knowledge of what such a checklist would probably contain. A reference is
-"not applicable" only when the corresponding subsystem is genuinely absent
-from the project (e.g. skip the SQL portion of `injection-checklist.md`
-only if there is no database layer at all) — "I already know this from
-training" is never a valid reason to skip opening the file. Note in your
-own working notes which files you opened; Phase 8's execution log requires
-this list.
+## Phase 0 — Project discovery
 
-### Phase 1 — Inspect before changing
-Walk the codebase in this order, noting what exists and what's missing:
+Inspect, when present:
 
-1. Project structure and framework/version (`package.json`, `next.config.*`)
-2. Authentication setup (provider, session/cookie strategy)
-3. Database access layer (ORM, query builder, raw SQL usage)
-4. API routes / Route Handlers (`app/**/route.ts`)
-5. Server Actions (`"use server"` functions, form actions)
-6. Middleware / proxy (`middleware.ts`, edge config)
-7. Forms and mutation paths (client → server data flow), including search/
-   filter inputs specifically — check whether the handler behind them
-   validates server-side or merely relies on client-side filtering/UX
-8. Environment variable usage (`.env*`, `NEXT_PUBLIC_*` references)
-9. Dangerous HTML rendering (`dangerouslySetInnerHTML`, markdown/rich-text)
-10. External fetches (server-side `fetch`/HTTP clients, webhook handlers)
-11. File upload handling
-12. Existing security utilities (validation, rate limiting, sanitizers)
+- `package.json`
+- `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock*`
+- `next.config.*`
+- `tsconfig.json`
+- `middleware.*`, `proxy.*`
+- `.env*` (never disclose secret values)
+- `app/**`, `src/**`, `pages/**`, `lib/**`, `server/**`
 
-Do not skip this phase even for a narrowly scoped request — you need to know
-what already exists so you don't duplicate or contradict it.
+Determine, without assumptions:
 
-### Phase 2 — Identify attack surface
-For each entry point found in Phase 1, classify:
-- Trust boundary: what is attacker-controlled input vs. trusted internal data?
-- Reachability: is it reachable unauthenticated, authenticated, or only by
-  specific roles?
-- Sink: what privileged operation or interpreter receives this input
-  (SQL engine, shell, filesystem, HTML renderer, URL fetcher, template
-  engine)?
+- Next.js, React, React DOM, Node.js versions
+- package manager
+- App Router vs Pages Router
+- authentication/authorization
+- database/ORM/query builder
+- external APIs and storage
+- uploads/webhooks/background jobs
+- validation/rate limiting/security middleware
+- caching strategy
+- deployment/runtime platform
 
-### Phase 3 — Detect vulnerabilities
-Work through each reference file you opened in Phase 0 against the actual
-code, not from memory of "what these checklists usually say." Use the
-severity model below — do not invent your own severities.
+Record discovered facts in the project graph.
 
-**Dependency security is not optional and is not gated on whether the rest
-of the app has other findings.** Every audit run — even one scoped to a
-single feature or file — includes actually running the project's package
-manager audit command (`npm audit` / `pnpm audit` / `yarn npm audit`, per
-`references/dependency-security.md`) and reviewing its real output. If the
-command can't be run in the current environment, state that explicitly in
-the report instead of silently omitting the dependency-security check.
+## Reference loading protocol
 
-### Phase 4 — Verify against current sources
-For any claim about framework/library/web-platform security behavior that
-could have changed since training — this includes version-specific
-behavior like current Server Action CSRF protections, current caching
-defaults, or a specific CVE's patched version — **actually invoke the web
-search and web fetch tools** per `references/source-priority.md` before
-stating the claim as fact. This step is mandatory whenever such a claim
-appears in the report, not just when convenient. Do not substitute
-memorized/training-time knowledge for this step and then phrase the report
-as if it were verified. If a source can't be reached, say so explicitly in
-the finding rather than presenting an unverified claim as current.
+Before the audit:
 
-### Phase 5 — Propose the safest minimal change
-For each confirmed finding, propose the smallest change that closes the gap
-without restructuring unrelated code. State whether a new dependency is
-actually necessary and why native platform/framework capabilities aren't
-sufficient.
+1. Determine project subsystems.
+2. Map subsystems to reference modules.
+3. Load every applicable reference.
+4. Record loaded references.
+5. Skip a reference only when its subsystem is genuinely absent and record the reason.
+6. Use reference modules for detailed technical rules; keep orchestration here.
 
-### Phase 6 — Implement (only when explicitly requested)
-Auditing and reporting do not require permission; making code changes does.
-When asked to fix:
-- Implement exactly the proposed minimal change.
-- Follow existing project conventions (naming, file layout, validation
-  style, error-handling patterns already in use).
-- Keep TypeScript strict — no `any`, no unsafe casts, no suppression
-  comments introduced to make a fix compile.
-- If Zod is used for validation, infer types from schemas and prefer
-  `safeParse`/`safeParseAsync` over throwing variants at trust boundaries.
+## Attack-surface graph
 
-### Phase 7 — Verify the fix
-Run whatever is available in the project: build, typecheck, lint, unit/
-integration tests, and any security-specific checks (e.g. `npm audit` /
-`pnpm audit` / lockfile-based scanners). Report actual command output/status,
-not assumed success.
+Build a conceptual map with one node per meaningful entry point:
 
-### Phase 8 — Execution gate (mandatory, before writing the report)
-Before producing the final report, verify against your own actions in this
-session — not your intent — that:
+- Server Actions
+- Route Handlers/API routes
+- Server Components
+- Client-to-server mutations
+- middleware/proxy
+- webhooks
+- uploads
+- cron endpoints
+- background jobs
 
-1. Every applicable `references/*.md` file was actually opened with a file-
-   read tool call in Phase 0/3 (list which ones; state explicitly if one
-   was skipped and why it was judged not applicable).
-2. The dependency audit command was actually run in Phase 3, with real
-   output reviewed (or its absence explicitly noted, per Phase 3's rule).
-3. Every version- or advisory-specific claim in the draft report has a
-   corresponding web search/fetch tool call behind it from Phase 4 (or is
-   explicitly flagged as unverified in the report if it doesn't).
+Each node records:
 
-If any of these didn't actually happen, either go back and do them now, or
-report the gap explicitly in the Execution Log below — do not write a
-report that implies verification occurred when it didn't.
+`entry_point, reachability, authentication, authorization, tenant_boundary, input_sources, validation, transformation, dangerous_sink, external_side_effect, sensitive_data_access`.
 
-### Phase 9 — Report
-Produce the audit report in the format defined below, including the
-Execution Log. Every finding must be traceable to a real file/location; do
-not report vulnerabilities you have not actually located in the code.
+## Trust-boundary analysis
 
-## Severity model
+For each security-sensitive path trace:
 
-Use exactly these four levels; do not invent others.
+`attacker-controlled input -> parsing -> validation -> normalization -> authentication -> authorization -> business logic -> dangerous sink -> side effect`
 
-**CRITICAL** — SQL injection, command injection, server-side code injection,
-authentication bypass, authorization bypass, arbitrary code execution, SSRF
-with meaningful internal impact, exposed secrets/credentials, IDOR exposing
-sensitive data, dangerous Server Action exposure, critical dependency CVEs.
+Explicitly mark every trust transition.
 
-**HIGH** — XSS, CSRF where applicable, broken authorization, insecure file
-uploads, path traversal, unsafe redirects, SSRF (non-critical impact),
-sensitive data exposure, insecure session/cookie handling, prototype
-pollution, unsafe deserialization, mass assignment/over-posting, missing
-server-side validation, missing rate limiting on security-sensitive
-endpoints.
+## Confirmed finding gate
 
-**MEDIUM** — weak security headers, overly permissive CORS, insecure cache
-behavior on sensitive responses, information disclosure, weak error
-handling, unsafe third-party integrations, dependency hygiene issues,
-missing security logging.
+A finding is `CONFIRMED` only when the evidence establishes:
 
-**LOW** — defense-in-depth improvements, hardening opportunities,
-non-critical configuration weaknesses.
+- reachable path
+- attacker-controlled or attacker-influenced input
+- dangerous operation
+- absent/insufficient mitigation
+- meaningful impact
 
-## Decision checklist (apply to every finding)
+Otherwise use `POTENTIAL`, `HARDENING`, or `UNVERIFIED` as appropriate.
 
-1. Is this actually exploitable, or only theoretically possible?
-2. Where is the trust boundary, precisely?
-3. What input is attacker-controlled?
-4. Where does that input flow through the codebase?
-5. Which interpreter or privileged operation ultimately receives it?
-6. What is the realistic impact if exploited?
-7. Is it already mitigated elsewhere (framework default, existing check)?
-8. What is the minimal correct fix?
-9. Is a new dependency actually necessary for the fix?
-10. How will the fix be verified (build/test/lint/scan)?
+Do not downgrade an evidence gap into a speculative "confirmed" finding.
 
-If you can't answer (1)–(5) concretely, do not report it as a confirmed
-finding — note it as a candidate needing more investigation instead.
+## False-positive gate
 
-## Reference files
+Before a finding is created, ask:
 
-Open every file below that applies to the project's actual stack — see
-Phase 0. Skipping one because the subsystem is genuinely absent is fine;
-skipping one because you already "know" the checklist is not.
+- Is the code reachable?
+- Is the input attacker-controlled?
+- Can the relevant value be influenced?
+- Is there an effective mitigation?
+- Does authorization block exploitation?
+- Does validation block exploitation?
+- Is the sink dangerous in this context?
+- Is the vulnerable dependency actually used?
+- Is vulnerable code reachable in production?
+- Is the project severity justified?
 
-- `references/source-priority.md` — authoritative source hierarchy
-  (Next.js, React, MDN, package docs, OWASP, GitHub Advisories, NVD, vendor
-  advisories) and the concrete steps for actually searching/fetching them
-  before making a version- or advisory-specific claim.
-- `references/nextjs-security-checklist.md` — App Router-specific model:
-  Server/Client Components, Server Actions, Route Handlers, middleware,
-  caching/revalidation, CSRF posture, SSRF, uploads, edge/runtime nuances.
-- `references/injection-checklist.md` — SQL, command, XSS, template/
-  expression injection, path traversal, NoSQL/LDAP/XPath injection patterns
-  and fixes.
-- `references/auth-authorization-checklist.md` — authN/authZ review points,
-  IDOR/BOLA, ownership checks, role handling, session/cookie hardening.
-- `references/security-headers.md` — CSP and other security headers, how to
-  derive a policy from the app's actual needs rather than copying a generic
-  list.
-- `references/dependency-security.md` — how to triage `package.json`/
-  lockfile risk without blind updates.
+## Security intelligence engine
 
-## Output format
+Use the registry in `references/source-registry.yaml` and the implementation in `src/security_intel.py`.
 
-When auditing, produce a report using this structure:
+Pipeline:
 
-```
-# Security Audit
+`Source Registry -> Retrieval Engine -> Source Adapters -> Normalization -> Deduplication -> Correlation -> Applicability -> Exploitability -> Provenance -> Project/Finding Graph`
 
-## Execution Log
-- Reference files opened: (list each, or "N/A — subsystem absent" per skip)
-- Dependency audit: (command run + summary of real output, or why it
-  couldn't be run)
-- Source verification: (list version-/advisory-specific claims below that
-  were checked via search/fetch, with the source used — or "unverified,
-  based on training knowledge" for any that weren't, called out plainly)
+Dynamic source selection is mandatory. Do not query every source on every run.
+
+Examples:
+
+- Next.js vulnerability: Next.js/GitHub advisory -> OSV -> Node.js only if runtime-related.
+- npm package security: GitHub Advisory -> OSV -> Snyk -> Socket.
+- malicious-package concern: Socket -> GitHub Advisory -> OSV -> package metadata.
+- Server Action exploitation: official Next.js docs/advisories -> OWASP -> PortSwigger when relevant -> project code.
+- XSS technique: PortSwigger -> OWASP -> official framework/browser docs -> project code.
+
+`retrieval_hint` is execution metadata. It controls when to query, query construction, fields to retrieve, corroboration, and interpretation.
+
+### Freshness policy
+
+For `latest/current/recent/newest/patched/secure version/known vulnerability`, perform fresh retrieval and record:
+
+`source, query, retrieved_at, source_updated_at, package, version, affected_range, patched_range, conclusion`.
+
+Within one run, cache identical source queries, but explicit freshness requests override stale cache.
+
+### Source failure policy
+
+Distinguish:
+
+- no results
+- source unavailable
+- query failure
+- authentication required
+- rate limited
+- not applicable
+
+Continue with other relevant sources where possible and report incomplete coverage.
+
+## Dependency security
+
+Determine the package manager first. Run the actual applicable audit command when execution is available:
+
+- npm: `npm audit`
+- pnpm: `pnpm audit`
+- yarn: `yarn npm audit`
+- bun: `bun audit`
+
+Never fabricate audit output.
+
+Correlate audit results with the security intelligence engine and exact lockfile-resolved versions.
+
+## Supply-chain security
+
+Keep supply-chain analysis separate. Review:
+
+- new/unfamiliar packages
+- maintainer changes
+- install/preinstall/postinstall scripts
+- unexpected network/filesystem/shell behavior
+- credential access
+- typosquatting/dependency confusion
+- suspicious transitive packages
+- abandoned security-critical packages
+
+Use Socket where applicable. Do not label an unusual package malicious without evidence.
+
+## Dependency update policy
+
+For each security-relevant dependency:
+
+1. exact package
+2. exact resolved version
+3. affected range
+4. patched version
+5. compatibility
+6. breaking changes
+7. minimal safe update
+8. build
+9. typecheck
+10. tests
+11. re-run audit
+
+Never blindly upgrade everything.
+
+## New dependency policy
+
+Before adding a package:
+
+1. define the security requirement
+2. check native APIs
+3. check existing dependencies
+4. assess maintenance
+5. assess supply-chain risk
+6. prefer mature packages
+7. document necessity
+
+## Severity
+
+Only:
+
+- CRITICAL
+- HIGH
+- MEDIUM
+- LOW
+
+Severity is project-specific, not copied blindly from an advisory. Resolve source conflicts explicitly.
+
+## Confidence
+
+Every finding has `High`, `Medium`, or `Low` confidence. Low-confidence items normally remain unconfirmed.
+
+## Finding statuses
+
+`CONFIRMED`, `POTENTIAL`, `HARDENING`, `UNVERIFIED`, `FIXED`, `VERIFIED`
+
+## Remediation
+
+Default to **Smallest Correct Security Fix**. Do not rewrite architecture, replace auth/ORM, add unnecessary libraries, refactor unrelated code, or introduce security theater.
+
+Only modify code with explicit authorization. When authorized, fix confirmed issues first, keep the patch minimal, preserve types/conventions, add relevant tests, and verify.
+
+## Verification
+
+When modifications occur, execute available:
+
+`build, typecheck, lint, unit tests, integration tests, security tests, dependency audit`
+
+Only report checks actually executed. Use `NOT RUN` with a reason when not executed.
+
+## Execution gates
+
+Audit completion requires:
+
+1. all applicable references loaded
+2. dependency audit executed when applicable
+3. current/source-sensitive claims verified
+4. confirmed findings have concrete code evidence
+5. authorized fixes actually verified
+6. source coverage recorded
+7. temporary execution artifacts kept out of persistent knowledge
+
+If any gate fails: **Audit is incomplete.**
+
+## Persistent vs temporary state
+
+Persistent:
+
+- project graph
+- source graph
+- findings graph
+- canonical advisory relationships
+- confirmed remediation decisions
+- resolved source correlations
+
+Temporary:
+
+- run ledger
+- HTTP/API responses
+- command output
+- scanner output
+- intermediate normalization
+- runtime artifacts
+- temporary files
+
+Do not pollute persistent state with transient execution artifacts.
+
+## Final report
+
+Use:
+
+# Security Audit Report
+
+Application / framework / versions / router / auth / authorization / database / ORM / scope / audit date
 
 ## Executive Summary
-Short assessment: scope reviewed, overall posture, count of findings by
-severity.
+## Risk Summary
+## Attack Surface
+## Confirmed Findings
+## Potential Risks
+## Hardening Recommendations
+## Dependency Security
+## Supply-Chain Security
+## Security Intelligence Coverage
+## Verification Results
+## Execution Log
+## Limitations
+## Overall Security Assessment
 
-## Critical Findings
-## High Findings
-## Medium Findings
-## Low / Hardening
+For each finding use the schema in `schemas/finding.schema.json`.
 
-For each finding:
+## Provenance
 
-### [SEVERITY] Title
+Every external security claim retains source identifiers and retrieval timestamps. Preserve original identifiers; never replace one identifier with another.
 
-- Location:
-- Vulnerability:
-- Attack Path:
-- Root Cause:
-- Impact:
-- Recommendation:
-- Source: (official doc/advisory referenced, if applicable)
-- Status: (Open / Fixed / Verified)
-```
+Separate:
 
-The Execution Log is not decorative — it's the evidence that Phase 0's
-reference loading, Phase 3's dependency audit, and Phase 4's source
-verification actually happened rather than being assumed. A report with an
-empty or vague Execution Log is incomplete.
+`Research -> Advisory -> Project Evidence -> Confirmed Finding`
 
-Only include findings that passed the decision checklist above. Do not omit
-a confirmed finding because it's inconvenient or because it implicates
-existing code.
+If sources disagree, record the disagreement, resolution, and reason.
 
-## Explicit non-goals
+## Self-review
 
-Do not, under any circumstances:
+Before finalization, check for:
 
-- Implement or suggest CAPTCHA
-- Blindly sanitize every string as a substitute for contextual validation
-- Install security packages without a stated, concrete justification
-- Rely on regex as the universal injection defense
-- Trust client-side validation as a security control
-- Claim React prevents all XSS, ORMs prevent all injection, or CSP alone
-  solves XSS
-- Add redundant middleware layers
-- Rewrite architecture that isn't part of the actual finding
-- Weaken TypeScript strictness for convenience
-- Hide or downplay findings because they're inconvenient
+- duplicate rules
+- contradictions
+- missing boundaries
+- missing sources
+- stale assumptions
+- unclear terminology
+- overly broad findings
+- false-positive risk
+- unnecessary dependencies
+- monolithic structure
+- missing provenance
+- missing execution state
+- weak retrieval hints
