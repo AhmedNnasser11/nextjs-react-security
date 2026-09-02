@@ -118,6 +118,30 @@ Before a finding is created, ask:
 - Is vulnerable code reachable in production?
 - Is the project severity justified?
 
+## Dynamic security query planner
+
+Do not rely on a fixed list of three Exa searches. Generate retrieval tasks from the discovered project graph.
+
+### Query families
+
+For each installed package/version, generate only relevant families: exact vulnerability, primary/vendor advisory, upstream identifier lookup, exploit-technique research, runtime security, and supply-chain intelligence. Technique searches are conditional on observed surfaces such as Server Actions, middleware/proxy, RSC, SSRF, XSS, cache poisoning, prototype pollution, command injection, path traversal, authorization/IDOR, or CSRF.
+
+### Query routing
+
+Use structured retrieval first where available. Exa/Web is a discovery and corroboration layer, not a replacement for GitHub Advisory, OSV, official framework advisories, or exact package metadata. Record `query_id`, `family`, `source`, `generated_from`, `rationale`, package/version/ecosystem, and freshness requirement.
+
+### Framework-specific expansion
+
+If Next.js is detected, consider Next.js advisories, React/RSC advisories, Server Actions, middleware/proxy, App Router/Route Handlers, caching/revalidation, SSRF/image optimization, redirects/rewrites, security headers, and Node.js runtime compatibility. If React is detected, consider React Server Components and `react-server-dom-*` packages when present. Edge-runtime compatibility is not automatically a vulnerability.
+
+### Dependency graph batching
+
+Use OSV batch queries for many package/version pairs. OSV querybatch returns vulnerability IDs and modified timestamps; fetch complete records before making detailed claims. GitHub's global advisory API supports exact `package@version` filtering.
+
+### Exa/Web policy
+
+Never use only three hard-coded searches. Generate queries from the project graph, prefer exact identifiers and versions, preserve each search as provenance, and never convert a search snippet directly into a confirmed finding.
+
 ## Security intelligence engine
 
 Use the registry in `references/source-registry.yaml` and the implementation in `src/security_intel.py`.

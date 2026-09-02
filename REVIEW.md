@@ -46,3 +46,7 @@ The source registry intentionally remains configurable because external provider
 - Temporary run artifacts are not persistent graph knowledge.
 - The engine is conservative about unverified provider integrations.
 - The package contains no fabricated audit output or project-specific vulnerability claims.
+
+## Upgrade: dynamic Exa/Web query generation
+
+Added `src/query_planner.py`: security-research tasks are generated from framework, dependency, runtime and observed attack-surface evidence instead of a fixed three-search list. It covers exact package/version advisories, Next.js/RSC/Server Actions/middleware/SSRF/cache, React RSC, runtime, supply-chain and conditional technique research.
