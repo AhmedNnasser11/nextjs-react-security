@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+state/runs/*
+!state/runs/.gitkeep
+state/persistent/*
+!state/persistent/.gitkeep

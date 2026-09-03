@@ -1,0 +1,27 @@
+{
+  "project": "example-next-app",
+  "framework": {
+    "name": "Next.js",
+    "version": "UNVERIFIED"
+  },
+  "runtime": {
+    "name": "Node.js",
+    "version": "UNVERIFIED"
+  },
+  "dependencies": [],
+  "entry_points": [
+    {
+      "entry_point": "Server Action",
+      "reachability": "UNVERIFIED",
+      "authentication": "UNVERIFIED",
+      "authorization": "UNVERIFIED",
+      "tenant_boundary": "UNVERIFIED",
+      "input_sources": [],
+      "validation": "UNVERIFIED",
+      "transformation": "",
+      "dangerous_sink": "",
+      "external_side_effect": "",
+      "sensitive_data_access": ""
+    }
+  ]
+}
