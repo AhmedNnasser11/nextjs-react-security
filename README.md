@@ -1,101 +1,48 @@
-# nextjs-react-security
+# Technical SEO / GEO Claude Skill — Production Architecture
 
-Production-oriented security audit and hardening Skill for Next.js, React, TypeScript, Node.js, App Router, Server Actions, Route Handlers, API endpoints, SSR, and React Server Components.
+Version: 2.0.0
 
-## What is included
+This package is an evidence-driven Claude skill for auditing and safely improving modern Next.js websites across technical SEO, GEO/AEO/AI Search, metadata, structured data, internal linking, performance, security, accessibility, and ecommerce.
 
-- `SKILL.md` — orchestration and decision logic
-- `references/` — modular security knowledge
-- `references/source-registry.yaml` — source registry and retrieval metadata
-- `references/web-research-checklist.md` — search/open/corroboration policy
-- `scripts/external_research.py` — external search provider gateway
-- `scripts/open_url.py` — allowlisted HTTPS source-opening gateway
-- `schemas/` — machine-readable models
-- `src/security_intel.py` — stdlib-only retrieval/normalization/deduplication/provenance engine
-- `examples/` — example project and finding records
-- `tests/` — lightweight deterministic tests
-- `state/persistent/` — intended persistent graph storage
-- `state/runs/` — intended temporary run-ledger storage
+## Core design
 
-## Design
+The skill separates four kinds of state:
 
-The Skill separates project evidence from external intelligence.
+1. **Persistent project knowledge** — `.claude/technical-seo-geo/` in the target project.
+2. **Persistent source knowledge** — source nodes and relationships stored in the same durable knowledge layer.
+3. **Persistent findings** — `findings.jsonl`, with implementation and verification kept separate.
+4. **Temporary run state** — unique outside-repository state used only while a run is executing; it is never installed by this package.
 
-```text
-Project discovery
-      |
-      v
-Attack-surface graph
-      |
-      +-------------------+
-      |                   |
-      v                   v
-Project evidence      Source registry
-                          |
-                          v
-                    Retrieval engine
-                          |
-                          v
-                     Normalization
-                          |
-                          v
-                    Deduplication
-                          |
-                          v
-                      Correlation
-                          |
-                          v
-                  Applicability analysis
-                          |
-                          v
-                  Exploitability analysis
-                          |
-                          v
-                      Provenance
-                          |
-                          v
-                 Findings / Source Graph
-```
+The graphs are indexes/navigation aids, not replacements for live project files or authoritative web sources.
 
-Socket remains a supply-chain intelligence layer rather than a CVE replacement.
+## Package map
 
-## Source notes
+- `SKILL.md` — execution contract and state machine.
+- `KNOWLEDGE-INDEX.md` — minimal entry point for agents.
+- `PROJECT-KNOWLEDGE-ARCHITECTURE.md` — persistence/retrieval design.
+- `PROJECT-LOCAL-STEPS.md` — concise runbook to install in a project when absent.
+- `source-registry.json` — authoritative source families and seed nodes.
+- `audit-manifest.json` — domain applicability, dependencies, evidence, and revalidation contracts.
+- `domains/*.md` — domain-specific audit knowledge loaded on demand.
+- `schemas/*.schema.json` — machine-checkable contracts for plan, evidence, ledger, graphs, and findings.
+- `scripts/validate-package.py` — offline package integrity validator; no network access required.
+- `CHANGELOG.md` — changes from the previous architecture.
+- `MIGRATION.md` — migration notes for existing installations.
 
-The implementation deliberately uses configurable adapters. GitHub's global advisory REST API is public for public resources and supports package/version filters; OSV provides single and batch package-version queries. Socket's current API supports package issues, scores, and full scans. Source URLs and API details are registry data and should be revalidated when a deployment depends on a provider's changing API.
+## Runtime source policy
 
-## External web-search execution
+Bundled references are baseline knowledge only. Applicable rules must be rechecked against current authoritative sources during the audit. Google Search currently documents AI Overviews/AI Mode as using the same foundational SEO requirements, with no special AI-only technical requirement; this skill therefore treats GEO/AEO as a retrieval/content-quality analysis layer rather than as a set of guaranteed ranking tricks.
 
-The Skill now has an explicit `external_research.py` adapter contract and `open_url.py` gateway. The intended flow is:
+The source registry also tracks current framework/security sources. For example, Next.js published an August 2026 security release for 16.3.3 and 15.5.24, so version-sensitive security checks must inspect the project's installed version and current release/security guidance.
 
-`plan query → external search → capture results → open authoritative URL → hash/provenance → use as evidence`
+## Important safety behavior
 
-The search provider is deliberately configurable. A deployment may bind `SEARCH_PROVIDER_COMMAND` to an approved provider adapter or provide a verified Exa endpoint via `EXA_SEARCH_URL` + `EXA_API_KEY`. The provider request schema must be verified against its current official documentation before production use; the package does not assume an unverified API contract.
+Runtime verification is never started automatically. Static validation must finish first, then the skill asks once for explicit permission before starting servers, browsers, live HTTP/API checks, or runtime crawling.
 
-`open_url.py` fails closed for non-HTTPS, non-allowlisted domains and restricted/private DNS targets, and re-validates redirects.
+The package also includes `scripts/cleanup-run.py`, a path-constrained helper for removing one temporary run directory. It refuses to delete the temp namespace root or paths containing protected project-state directories.
 
-## Basic use
+## 3.0 agent architecture upgrade
 
-```bash
-python -m src.security_intel --registry references/source-registry.yaml --package next --version 16.3.3 --ecosystem npm
-```
+This release adopts a hybrid architecture: one orchestrator LLM over deterministic tools. The repository is explicitly untrusted input. External web search is a discovery/corroboration layer; material claims require opening the canonical source and preserving provenance.
 
-Environment variables may provide optional credentials:
-
-- `GITHUB_TOKEN`
-- `SNYK_TOKEN`
-- `SOCKET_API_KEY`
-
-The engine never treats unavailable credentials or failed sources as "no vulnerabilities".
-
-## Runtime assumptions
-
-- Python 3.10+
-- standard library only for the included engine
-- network access is required for live source retrieval
-- repository analysis and command execution are performed by the surrounding Skill/agent runtime
-
-## Verification
-
-```bash
-python -m unittest discover -s tests -v
-```
+Provider integrations are runtime-configurable. The package does not hard-code an Exa API key or pretend that a search provider is available when the host runtime has not supplied one.

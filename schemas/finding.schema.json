@@ -1,19 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Security Finding",
+  "$id": "https://example.invalid/technical-seo-geo/finding.schema.json",
+  "title": "Technical SEO GEO Finding",
   "type": "object",
   "required": [
     "id",
     "title",
-    "severity",
-    "confidence",
-    "status",
+    "description",
     "category",
-    "evidence",
-    "minimal_remediation",
-    "verification",
-    "source_evidence",
-    "limitations"
+    "severity",
+    "classification",
+    "status",
+    "verification_status",
+    "first_detected",
+    "last_updated",
+    "project_node_ids",
+    "source_node_ids",
+    "evidence_ids"
   ],
   "properties": {
     "id": {
@@ -22,105 +25,173 @@
     "title": {
       "type": "string"
     },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
     "severity": {
       "enum": [
         "CRITICAL",
         "HIGH",
         "MEDIUM",
-        "LOW"
+        "LOW",
+        "OPPORTUNITY"
       ]
     },
-    "confidence": {
+    "classification": {
       "enum": [
-        "High",
-        "Medium",
-        "Low"
+        "OFFICIAL_STANDARD",
+        "FIRST_PARTY_IMPLEMENTATION",
+        "INDUSTRY_BEST_PRACTICE",
+        "EMERGING_GEO",
+        "EXPERIMENTAL",
+        "SECURITY_RISK",
+        "ACCESSIBILITY_CONFORMANCE"
       ]
     },
     "status": {
       "enum": [
-        "CONFIRMED",
-        "POTENTIAL",
-        "HARDENING",
-        "UNVERIFIED",
+        "OPEN",
+        "INVESTIGATING",
+        "FIXING",
         "FIXED",
-        "VERIFIED"
+        "BLOCKED_AFTER_RETRY",
+        "ACCEPTED_RISK"
       ]
     },
-    "category": {
-      "type": "string"
+    "verification_status": {
+      "enum": [
+        "UNVERIFIED",
+        "VERIFIED",
+        "FAILED",
+        "NOT_APPLICABLE"
+      ]
     },
-    "affected_file": {
-      "type": "string"
-    },
-    "location": {
-      "type": "string"
-    },
-    "entry_point": {
-      "type": "string"
-    },
-    "reachability": {
-      "type": "string"
-    },
-    "attacker_controlled_input": {
-      "type": "string"
-    },
-    "trust_boundary": {
-      "type": "string"
-    },
-    "validation": {
-      "type": "string"
-    },
-    "authentication": {
-      "type": "string"
-    },
-    "authorization": {
-      "type": "string"
-    },
-    "dangerous_sink": {
-      "type": "string"
-    },
-    "exploit_path": {
-      "type": "string"
-    },
-    "impact": {
-      "type": "string"
-    },
-    "evidence": {
+    "project_node_ids": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "existing_mitigations": {
+    "source_node_ids": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "why_mitigation_is_insufficient": {
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "root_cause": {
       "type": "string"
     },
-    "minimal_remediation": {
+    "remediation": {
       "type": "string"
     },
-    "verification": {
+    "verification_evidence_ids": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "source_evidence": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "limitations": {
+    "regression_evidence_ids": {
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "first_detected": {
+      "type": "string"
+    },
+    "last_checked": {
+      "type": "string"
+    },
+    "last_updated": {
+      "type": "string"
+    },
+    "execution_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision_basis": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence_basis": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_conflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "provenance_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "remediation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verification_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "FIXED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "verification_status": {
+            "enum": [
+              "UNVERIFIED",
+              "VERIFIED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verification_status": {
+            "const": "VERIFIED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "verification_evidence_ids"
+        ]
       }
     }
-  }
+  ],
+  "additionalProperties": false
 }
