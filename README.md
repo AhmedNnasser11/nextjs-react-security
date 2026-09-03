@@ -7,6 +7,9 @@ Production-oriented security audit and hardening Skill for Next.js, React, TypeS
 - `SKILL.md` — orchestration and decision logic
 - `references/` — modular security knowledge
 - `references/source-registry.yaml` — source registry and retrieval metadata
+- `references/web-research-checklist.md` — search/open/corroboration policy
+- `scripts/external_research.py` — external search provider gateway
+- `scripts/open_url.py` — allowlisted HTTPS source-opening gateway
 - `schemas/` — machine-readable models
 - `src/security_intel.py` — stdlib-only retrieval/normalization/deduplication/provenance engine
 - `examples/` — example project and finding records
@@ -59,6 +62,16 @@ Socket remains a supply-chain intelligence layer rather than a CVE replacement.
 ## Source notes
 
 The implementation deliberately uses configurable adapters. GitHub's global advisory REST API is public for public resources and supports package/version filters; OSV provides single and batch package-version queries. Socket's current API supports package issues, scores, and full scans. Source URLs and API details are registry data and should be revalidated when a deployment depends on a provider's changing API.
+
+## External web-search execution
+
+The Skill now has an explicit `external_research.py` adapter contract and `open_url.py` gateway. The intended flow is:
+
+`plan query → external search → capture results → open authoritative URL → hash/provenance → use as evidence`
+
+The search provider is deliberately configurable. A deployment may bind `SEARCH_PROVIDER_COMMAND` to an approved provider adapter or provide a verified Exa endpoint via `EXA_SEARCH_URL` + `EXA_API_KEY`. The provider request schema must be verified against its current official documentation before production use; the package does not assume an unverified API contract.
+
+`open_url.py` fails closed for non-HTTPS, non-allowlisted domains and restricted/private DNS targets, and re-validates redirects.
 
 ## Basic use
 

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Security Evidence",
+  "type": "object",
+  "required": ["evidence_id", "kind", "trust_class", "obtained_at", "provenance"],
+  "properties": {
+    "evidence_id": {"type": "string"},
+    "kind": {"enum": ["PROJECT", "STRUCTURED_ADVISORY", "WEB_RESEARCH", "EXECUTION", "VERIFICATION"]},
+    "trust_class": {"enum": ["TRUSTED_INSTRUCTION", "STRUCTURED_DATA", "EXTERNAL_RESEARCH", "UNTRUSTED_REPOSITORY", "UNTRUSTED_TOOL_OUTPUT", "CONCLUSION"]},
+    "content_ref": {"type": "string"},
+    "source_url": {"type": ["string", "null"]},
+    "query": {"type": ["string", "null"]},
+    "obtained_at": {"type": "string"},
+    "sha256": {"type": ["string", "null"]},
+    "provenance": {"type": "object"}
+  }
+}

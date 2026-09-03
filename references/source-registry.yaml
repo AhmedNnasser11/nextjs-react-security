@@ -177,3 +177,24 @@ sources:
       Use for recent discovery/context only. Verify important claims against primary or
       structured sources before marking them confirmed.
     enabled: true
+
+  - id: exa-web
+    name: Exa Web Search
+    category: web_discovery
+    authority: discovery_secondary
+    purpose: live web discovery and corroboration
+    site_url: https://exa.ai/
+    api_url: https://api.exa.ai
+    api_method: POST
+    format: JSON
+    authentication: API-dependent
+    freshness: live
+    priority: 70
+    description: >
+      Live web discovery layer for recent security announcements, exploitability context,
+      framework behavior, ambiguity resolution, and research not yet represented in structured feeds.
+    retrieval_hint: >
+      Invoke only when structured sources are insufficient, current web verification is required,
+      or a research question needs qualitative evidence. Restrict to trusted domains when possible.
+      Open result URLs before using them as substantive evidence and record the complete provenance chain.
+    enabled: true

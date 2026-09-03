@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Security Query Task",
+  "type": "object",
+  "required": ["query_id", "family", "query", "generated_from", "rationale", "source", "freshness_required", "priority"],
+  "properties": {
+    "query_id": {"type": "string"},
+    "family": {"type": "string"},
+    "query": {"type": "string"},
+    "generated_from": {"type": "string"},
+    "rationale": {"type": "string"},
+    "source": {"type": "string"},
+    "package": {"type": ["string", "null"]},
+    "version": {"type": ["string", "null"]},
+    "ecosystem": {"type": ["string", "null"]},
+    "freshness_required": {"type": "boolean"},
+    "priority": {"type": "integer"}
+  }
+}

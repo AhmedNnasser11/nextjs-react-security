@@ -50,3 +50,11 @@ The source registry intentionally remains configurable because external provider
 ## Upgrade: dynamic Exa/Web query generation
 
 Added `src/query_planner.py`: security-research tasks are generated from framework, dependency, runtime and observed attack-surface evidence instead of a fixed three-search list. It covers exact package/version advisories, Next.js/RSC/Server Actions/middleware/SSRF/cache, React RSC, runtime, supply-chain and conditional technique research.
+
+## Upgrade: actual external research execution
+
+The package now distinguishes query generation from query execution. `scripts/external_research.py` provides a provider-neutral execution contract, while `scripts/open_url.py` is the evidence-opening gateway. The Skill requires search results to be opened before substantive use.
+
+The query planner now emits preferred trusted domains and a `requires_open` flag. Repository content is explicitly treated as untrusted data and may not override trusted instructions.
+
+The URL gateway revalidates redirects to reduce SSRF risk from open redirects.
