@@ -1,6 +1,6 @@
 # Injection
 
-Trace dangerous sinks backward to attacker-controlled inputs.
+Trace dangerous sinks backward to attacker-controlled inputs. Also see `input-validation-checklist.md` for preventing code-bearing values from reaching sinks.
 
 ## SQL
 Inspect raw SQL, template literals, concatenation, dynamic filters, ORDER BY, columns/tables, search, pagination, sorting, reports and exports. Prefer parameterization and allowlists.

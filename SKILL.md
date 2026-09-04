@@ -47,6 +47,7 @@ Determine, without assumptions:
 - external APIs and storage
 - uploads/webhooks/background jobs
 - validation/rate limiting/security middleware
+- input validation and code-rejection posture
 - caching strategy
 - deployment/runtime platform
 
@@ -81,6 +82,19 @@ Each node records:
 
 `entry_point, reachability, authentication, authorization, tenant_boundary, input_sources, validation, transformation, dangerous_sink, external_side_effect, sensitive_data_access`.
 
+## Input validation and code-rejection
+
+When the project has Server Actions, Route Handlers, forms, or any client-supplied data reaching a server sink, load `references/input-validation-checklist.md`.
+
+User input must be constrained at the trust boundary. A field that accepts arbitrary strings — even if only forwarded to a backend today — is a latent injection vector. Prefer schema-level allowlists (regex, `.refine()`) that reject code characters (`<`, `>`, control bytes), executable URI schemes (`javascript:`, `vbscript:`, `data:`), and path metacharacters before the value reaches parsing, storage, or rendering.
+
+Classify findings based on the actual sink:
+
+- `HARDENING`: the field accepts code but is only forwarded to a backend/API or not yet rendered.
+- `CONFIRMED`: the field accepts code and is rendered unsanitized, embedded in JSON-LD without escaping, interpolated into commands/SQL/URLs, or stored and reflected without sanitization.
+
+Recommended minimal fixes use the project's existing validator (usually zod) and do not add dependencies.
+
 ## Trust-boundary analysis
 
 For each security-sensitive path trace:
@@ -113,6 +127,7 @@ Before a finding is created, ask:
 - Is there an effective mitigation?
 - Does authorization block exploitation?
 - Does validation block exploitation?
+- Does validation block code-bearing input?
 - Is the sink dangerous in this context?
 - Is the vulnerable dependency actually used?
 - Is vulnerable code reachable in production?
@@ -303,6 +318,8 @@ Every finding has `High`, `Medium`, or `Low` confidence. Low-confidence items no
 ## Remediation
 
 Default to **Smallest Correct Security Fix**. Do not rewrite architecture, replace auth/ORM, add unnecessary libraries, refactor unrelated code, or introduce security theater.
+
+For input-validation hardening, prefer schema-level constraints (regex, `.refine()`) over new dependencies. Preserve Unicode support (Arabic, CJK, diacritics) by using Unicode property escapes. Reject code-bearing input at the server boundary even when the field is not currently rendered.
 
 Only modify code with explicit authorization. When authorized, fix confirmed issues first, keep the patch minimal, preserve types/conventions, add relevant tests, and verify.
 
