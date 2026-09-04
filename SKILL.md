@@ -60,9 +60,10 @@ Before the audit:
 1. Determine project subsystems.
 2. Map subsystems to reference modules.
 3. Load every applicable reference.
-4. Record loaded references.
-5. Skip a reference only when its subsystem is genuinely absent and record the reason.
-6. Use reference modules for detailed technical rules; keep orchestration here.
+4. For version-sensitive validation, sanitization, or framework libraries used by the project (e.g. `zod`, `yup`, `joi`, `valibot`, `arktype`, `ajv`, `sanitize-html`, `next`, `react`), fetch their current documentation via Context7 (`npx ctx7@latest library <name> "<query>"`, then `npx ctx7@latest docs <id> "<query>"`) before making API-specific recommendations. Record the docs source, version, and retrieval timestamp.
+5. Record loaded references.
+6. Skip a reference only when its subsystem is genuinely absent and record the reason.
+7. Use reference modules for detailed technical rules; keep orchestration here.
 
 ## Attack-surface graph
 
@@ -179,7 +180,7 @@ Do not rely on a fixed list of three Exa searches. Generate retrieval tasks from
 
 ### Query families
 
-For each installed package/version, generate only relevant families: exact vulnerability, primary/vendor advisory, upstream identifier lookup, exploit-technique research, runtime security, and supply-chain intelligence. Technique searches are conditional on observed surfaces such as Server Actions, middleware/proxy, RSC, SSRF, XSS, cache poisoning, prototype pollution, command injection, path traversal, authorization/IDOR, or CSRF.
+For each installed package/version, generate only relevant families: exact vulnerability, primary/vendor advisory, upstream identifier lookup, exploit-technique research, runtime security, supply-chain intelligence, and library_documentation. Technique searches are conditional on observed surfaces such as Server Actions, middleware/proxy, RSC, SSRF, XSS, cache poisoning, prototype pollution, command injection, path traversal, authorization/IDOR, or CSRF.
 
 ### Query routing
 
@@ -214,6 +215,7 @@ Examples:
 - malicious-package concern: Socket -> GitHub Advisory -> OSV -> package metadata.
 - Server Action exploitation: official Next.js docs/advisories -> OWASP -> PortSwigger when relevant -> project code.
 - XSS technique: PortSwigger -> OWASP -> official framework/browser docs -> project code.
+- zod/validation pattern: Context7 zod docs (or the project's validation library) -> project code.
 
 `retrieval_hint` is execution metadata. It controls when to query, query construction, fields to retrieve, corroboration, and interpretation.
 

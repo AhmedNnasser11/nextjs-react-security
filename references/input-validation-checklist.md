@@ -2,6 +2,16 @@
 
 Use this reference whenever the target project has Server Actions, Route Handlers, forms, or any client-controlled input that reaches a server-side sink.
 
+## Documentation
+
+Before recommending or reviewing validation patterns, fetch the current documentation for the installed validation library. Use Context7 (`npx ctx7@latest library <name> "<query>"`, then `npx ctx7@latest docs <id> "<query>"`). Typical queries:
+
+- zod: "string regex validation", "refine validation", "safeParse vs parse", "v4 API changes".
+- yup/joi/valibot/arktype/ajv: equivalent string validation and coercion APIs.
+- sanitize-html: current options for allowed tags, attributes, styles, and URI schemes.
+
+Record the library version, doc source, and retrieval timestamp. Do not rely on memory for version-sensitive API details.
+
 ## Goal
 
 Ensure attacker-controlled values are constrained before they are parsed, stored, or forwarded. A string that "accepts code" — HTML tags, control characters, executable URI schemes, or shell metacharacters — is a latent injection vector even if it is not immediately rendered.

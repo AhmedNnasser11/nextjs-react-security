@@ -178,6 +178,28 @@ sources:
       structured sources before marking them confirmed.
     enabled: true
 
+  - id: context7-docs
+    name: Context7 Library Documentation
+    category: documentation
+    authority: primary
+    purpose: current API and configuration documentation for version-sensitive libraries
+    site_url: https://context7.com/
+    api_url: https://context7.com/api
+    api_method: CLI
+    format: markdown
+    authentication: API-dependent
+    freshness: live
+    priority: 90
+    description: >
+      Current library/framework documentation for version-sensitive recommendations
+      (zod, sanitize-html, Next.js, React, etc.). Use to verify API signatures, options,
+      and best practices before advising fixes.
+    retrieval_hint: >
+      Resolve the library ID with `npx ctx7@latest library <name> "<query>"`, then fetch
+      docs with `npx ctx7@latest docs <libraryId> "<query>"`. Record libraryId, query,
+      retrieved_at, and source_updated_at.
+    enabled: true
+
   - id: exa-web
     name: Exa Web Search
     category: web_discovery
