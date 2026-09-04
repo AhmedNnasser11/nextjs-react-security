@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from src.security_intel import (
-    NormalizedAdvisory, canonical_key, deduplicate, load_simple_yaml
+    NormalizedAdvisory, canonical_key, deduplicate, load_simple_yaml, normalize
 )
 
 class TestSecurityIntel(unittest.TestCase):
@@ -28,6 +28,14 @@ class TestSecurityIntel(unittest.TestCase):
         a = NormalizedAdvisory(source="github-advisory-database", source_url="a", **common)
         b = NormalizedAdvisory(source="osv", source_url="b", **common)
         self.assertEqual(len(deduplicate([a,b])), 1)
+
+    def test_osv_null_database_specific_is_safe(self):
+        records = normalize('osv', {
+            'id': 'OSV-TEST', 'aliases': [], 'affected': [{
+                'package': {'name': 'zod'}, 'ranges': []
+            }], 'database_specific': None, 'references': []
+        }, 'zod', '4.1.3', 'npm')
+        self.assertEqual(len(records), 1)
 
 if __name__ == "__main__":
     unittest.main()

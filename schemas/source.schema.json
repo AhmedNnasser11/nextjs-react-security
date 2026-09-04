@@ -43,6 +43,10 @@
       "type": "string",
       "format": "uri"
     },
+    "batch_api_url": {
+      "type": "string",
+      "format": "uri"
+    },
     "api_method": {
       "type": "string"
     },

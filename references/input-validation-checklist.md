@@ -36,7 +36,7 @@ Examples: `name`, `subject`, `notes`, `specialRequests`, `origin`, `destination`
 
 - Use an allowlist/segment guard before interpolation (e.g. `safePathSegment`).
 - Reject path separators (`/`, `\`), traversal dots (`.`), percent-encoding (`%`), and control characters.
-- Decode only after the guard is applied, or decode-then-guard at the page/action boundary.
+- Decode once, then guard the decoded value. Next.js route parameters are normally already decoded; never decode them a second time. Reject a value that still contains `%` when encoded input is not expected.
 
 ## Query parameters
 
@@ -47,7 +47,7 @@ Examples: `name`, `subject`, `notes`, `specialRequests`, `origin`, `destination`
 ## URI schemes
 
 - If you must allow rich content, restrict `allowedSchemes` in sanitizers and never permit `javascript:` or `data:` where HTML/JS execution is possible.
-- In `sanitize-html`, `data:` on an `img` is generally safe in modern browsers, but drop it if the use case allows.
+- In `sanitize-html`, `data:` may be acceptable for an `img src` data image, but scope that exception to `img` only. Never allow it for `a href`, scripts, objects, frames, or executable contexts.
 
 ## Server Actions / Route Handlers
 
@@ -77,7 +77,7 @@ Free-text notes with code rejection:
 const noCode = (value: string) =>
   !/[<>]/.test(value) &&
   !/[\x00-\x1f\x7f]/.test(value) &&
-  !/\b(javascript|vbscript|data):/i.test(value);
+  !/^\s*(?:javascript|vbscript|data):/i.test(value);
 
 z.string()
   .max(2000)

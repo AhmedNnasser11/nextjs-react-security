@@ -1,3 +1,8 @@
+---
+name: nextjs-react-security
+description: Security audit and hardening for Next.js, React, TypeScript, Node.js, Server Actions, Route Handlers, forms, input validation, XSS, injection, CSRF, SSRF, authentication, authorization, secrets, uploads, CSP, dependencies, and production security. Use whenever reviewing or changing security-sensitive web application code.
+compatibility: opencode
+---
 # nextjs-react-security
 
 ## Mission
@@ -64,6 +69,11 @@ Before the audit:
 5. Record loaded references.
 6. Skip a reference only when its subsystem is genuinely absent and record the reason.
 7. Use reference modules for detailed technical rules; keep orchestration here.
+
+Load `policies/autonomy.yaml`, `policies/trust-boundaries.md`, `docs/agent-loop.md`,
+`evaluators/security_decision.md`, and `adapters/web_search_provider.md` when their
+workflow or execution policy applies. These files refine the orchestration rules; they
+do not override explicit user authorization or trusted platform policy.
 
 ## Attack-surface graph
 
@@ -217,6 +227,11 @@ Examples:
 - XSS technique: PortSwigger -> OWASP -> official framework/browser docs -> project code.
 - zod/validation pattern: Context7 zod docs (or the project's validation library) -> project code.
 
+Load `references/xss-checklist.md`, `references/prototype-pollution-checklist.md`,
+`references/open-redirect-checklist.md`, and `references/ssrf-checklist.md` when those sinks or surfaces are present. Validate redirect
+destinations using the same sink-specific approach; never classify an open redirect from a
+string pattern alone without a reachable redirect operation.
+
 `retrieval_hint` is execution metadata. It controls when to query, query construction, fields to retrieve, corroboration, and interpretation.
 
 ### Freshness policy
@@ -325,6 +340,10 @@ For input-validation hardening, prefer schema-level constraints (regex, `.refine
 
 Only modify code with explicit authorization. When authorized, fix confirmed issues first, keep the patch minimal, preserve types/conventions, add relevant tests, and verify.
 
+Use the repository's existing validator and preserve legitimate Unicode, whitespace, and
+field semantics. Do not make a broad blocklist the only defense for a dangerous sink;
+validate according to the sink and encode or sanitize at the final context as well.
+
 ## Verification
 
 When modifications occur, execute available:
@@ -391,6 +410,9 @@ Application / framework / versions / router / auth / authorization / database / 
 ## Execution Log
 ## Limitations
 ## Overall Security Assessment
+
+Include `Unverified / Resolved Findings` when findings have status `UNVERIFIED`, `FIXED`,
+or `VERIFIED`; do not force those states into Confirmed, Potential, or Hardening sections.
 
 For each finding use the schema in `schemas/finding.schema.json`.
 

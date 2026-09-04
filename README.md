@@ -8,11 +8,21 @@ Production-oriented security audit and hardening Skill for Next.js, React, TypeS
 - `references/` — modular security knowledge
 - `references/source-registry.yaml` — source registry and retrieval metadata
 - `references/web-research-checklist.md` — search/open/corroboration policy
+- `references/input-validation-checklist.md` — server-side code-rejection guidance
+- `references/xss-checklist.md` — browser-context XSS review
+- `references/open-redirect-checklist.md` — redirect destination review
+- `references/prototype-pollution-checklist.md` — dynamic-key and merge review
 - `scripts/external_research.py` — external search provider gateway
 - `scripts/open_url.py` — allowlisted HTTPS source-opening gateway
 - `schemas/` — machine-readable models
+- `policies/` — autonomy and trust-boundary policies
+- `docs/` — execution workflow documentation
+- `evaluators/` — conservative finding decision guidance
+- `adapters/` — external-provider contracts
 - `src/security_intel.py` — stdlib-only retrieval/normalization/deduplication/provenance engine
+- `src/query_planner.py` — dynamic security research query planner
 - `examples/` — example project and finding records
+- `fixtures/` — deterministic planner fixtures
 - `tests/` — lightweight deterministic tests
 - `state/persistent/` — intended persistent graph storage
 - `state/runs/` — intended temporary run-ledger storage

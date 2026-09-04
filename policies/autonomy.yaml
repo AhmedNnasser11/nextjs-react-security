@@ -5,6 +5,7 @@ levels:
     examples: [repository_inspection, advisory_lookup, web_research, tests, build, lint]
   AUTO_FIX_SAFE:
     requires:
+      - explicit_user_authorization
       - confirmed_finding
       - reversible_change
       - minimal_diff

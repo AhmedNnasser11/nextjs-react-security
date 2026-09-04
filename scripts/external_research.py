@@ -7,7 +7,7 @@ EXA_API_KEY when the deployment has verified the current provider API contract.
 The Skill never treats snippets as final evidence.
 """
 from __future__ import annotations
-import argparse, json, os, subprocess, sys, urllib.request
+import argparse, json, os, shlex, subprocess, sys, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -19,8 +19,8 @@ def now():
 def run_provider(payload: dict) -> dict:
     cmd = os.getenv('SEARCH_PROVIDER_COMMAND')
     if cmd:
-        proc = subprocess.run(cmd, input=json.dumps(payload), text=True, shell=True,
-                              capture_output=True, timeout=60)
+        proc = subprocess.run(shlex.split(cmd), input=json.dumps(payload), text=True,
+                              shell=False, capture_output=True, timeout=60)
         if proc.returncode != 0:
             return {'provider': 'external-command', 'query': payload['query'],
                     'retrieved_at': now(), 'results': [], 'failure': proc.stderr[:1000]}

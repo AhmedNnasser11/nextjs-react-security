@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Security Query Task",
   "type": "object",
-  "required": ["query_id", "family", "query", "generated_from", "rationale", "source", "freshness_required", "priority"],
+  "required": ["query_id", "family", "query", "generated_from", "rationale", "source", "freshness_required", "priority", "requires_open", "preferred_domains"],
   "properties": {
     "query_id": {"type": "string"},
     "family": {"type": "string"},
@@ -14,6 +14,8 @@
     "version": {"type": ["string", "null"]},
     "ecosystem": {"type": ["string", "null"]},
     "freshness_required": {"type": "boolean"},
-    "priority": {"type": "integer"}
+    "priority": {"type": "integer"},
+    "requires_open": {"type": "boolean"},
+    "preferred_domains": {"type": "array", "items": {"type": "string"}}
   }
 }

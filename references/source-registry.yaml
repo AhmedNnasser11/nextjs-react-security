@@ -86,7 +86,7 @@ sources:
     authority: secondary_structured
     purpose: package vulnerability intelligence
     site_url: https://security.snyk.io/vuln/npm
-    api_url: https://snyk.io/api
+    api_url: https://api.snyk.io
     api_method: API
     format: JSON/API
     authentication: API-dependent
@@ -104,7 +104,7 @@ sources:
     category: supply_chain
     authority: specialized_security_intelligence
     purpose: npm supply-chain and malicious-package intelligence
-    site_url: https://socket.dev/blog/category/security
+    site_url: https://socket.dev/
     api_url: https://api.socket.dev
     api_method: REST
     format: JSON
@@ -184,7 +184,7 @@ sources:
     authority: primary
     purpose: current API and configuration documentation for version-sensitive libraries
     site_url: https://context7.com/
-    api_url: https://context7.com/api
+    api_url: https://context7.com/
     api_method: CLI
     format: markdown
     authentication: API-dependent

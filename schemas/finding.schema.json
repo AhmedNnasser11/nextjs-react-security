@@ -122,5 +122,18 @@
         "type": "string"
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "CONFIRMED"}}},
+      "then": {
+        "required": ["evidence", "exploit_path", "impact"],
+        "properties": {
+          "evidence": {"minItems": 1},
+          "exploit_path": {"minLength": 1},
+          "impact": {"minLength": 1}
+        }
+      }
+    }
+  ]
 }

@@ -65,8 +65,11 @@ def main() -> None:
         'Accept': 'text/html,application/json,text/plain;q=0.9,*/*;q=0.1',
     })
     ctx = ssl.create_default_context()
-    opener = urllib.request.build_opener(SafeRedirectHandler(allowed))
-    with opener.open(req, timeout=20, context=ctx) as r:
+    opener = urllib.request.build_opener(
+        SafeRedirectHandler(allowed),
+        urllib.request.HTTPSHandler(context=ctx),
+    )
+    with opener.open(req, timeout=20) as r:
         body = r.read(args.max_bytes + 1)
         truncated = len(body) > args.max_bytes
         body = body[:args.max_bytes]

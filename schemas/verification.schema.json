@@ -5,7 +5,7 @@
   "required": ["verification_id", "status", "checks"],
   "properties": {
     "verification_id": {"type": "string"},
-    "status": {"enum": ["PASSED", "FAILED", "NOT_RUN", "INCOMPLETE"]},
+    "status": {"enum": ["PASSED", "FAILED", "NOT RUN", "INCOMPLETE"]},
     "checks": {"type": "array", "items": {"type": "object"}},
     "limitations": {"type": "array", "items": {"type": "string"}}
   }

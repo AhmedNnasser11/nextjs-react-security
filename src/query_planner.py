@@ -72,7 +72,8 @@ def plan_queries(project: dict, *, year: int | None = None) -> list[QueryTask]:
                 ('nextjs.org','vercel.com','portswigger.net','owasp.org'))
 
     important = {'next','react','react-dom','react-server-dom-webpack','react-server-dom-turbopack',
-                 'react-server-dom-parcel','swiper','sharp','jsonwebtoken','jose'}
+                 'react-server-dom-parcel','swiper','sharp','jsonwebtoken','jose',
+                 'zod','yup','joi','valibot','arktype','ajv','sanitize-html'}
     for d in deps:
         n, v = d.get('name'), d.get('version')
         if not n or not v or not (n in important or d.get('security_sensitive') or d.get('runtime_relevant')):
@@ -87,6 +88,10 @@ def plan_queries(project: dict, *, year: int | None = None) -> list[QueryTask]:
             add('prototype-pollution', f'swiper {v} prototype pollution CVE GHSA',
                 'dependency:swiper', 'Package-specific prototype-pollution research', n, v, 91,
                 'exa_web', ('github.com','cve.org','nvd.nist.gov'))
+        if n in {'zod', 'yup', 'joi', 'valibot', 'arktype', 'ajv', 'sanitize-html'}:
+            add('library_documentation', f'{n} {v} current validation and sanitization API documentation',
+                f'dependency:{n}', 'Verify version-sensitive validation or sanitization APIs', n, v,
+                87, 'context7-docs', ())
 
     if any(d.get('name','').startswith('react') for d in deps):
         add('react-rsc', f'React Server Components RSC security advisories {year}',
@@ -106,7 +111,7 @@ def plan_queries(project: dict, *, year: int | None = None) -> list[QueryTask]:
             source='exa_web', domains=('nextjs.org','vercel.com'))
 
     techniques = [('xss','XSS',85),('ssrf','SSRF',90),('prototype','prototype pollution',82),
-                  ('command','command injection',88),('path','path traversal',86),('csrf','CSRF',80),
+                  ('command','command injection',88),('path','path traversal',86),('redirect','open redirect',84),('csrf','CSRF',80),
                   ('authorization','authorization IDOR BOLA',92)]
     for token, label, pri in techniques:
         if token in attack:

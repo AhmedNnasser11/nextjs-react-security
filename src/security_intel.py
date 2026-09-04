@@ -201,9 +201,10 @@ class RetrievalEngine:
             token = os.getenv("GITHUB_TOKEN")
             headers = {"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"}
             if token: headers["Authorization"] = f"Bearer {token}"
-            data = self._http("GET", self.sources[sid]["api_url"], headers=headers)
-            # Filter client-side because repository advisory endpoint does not
-            # expose the same "affects package@version" filter as global advisories.
+            url = self.sources[sid]["api_url"] + "?per_page=100"
+            data = self._http("GET", url, headers=headers)
+            # The repository endpoint returns advisories for the whole repository;
+            # applicability is correlated later against normalized package/ranges.
             result = SourceResult(sid, True, query, utc_now(), len(data), None, data)
         except Exception as e:
             result = SourceResult(sid, True, query, utc_now(), 0, str(e), [])
@@ -258,7 +259,7 @@ def normalize(source: str, record: dict[str, Any], package: str, version: str, e
                 published_at=record.get("published_at"), updated_at=record.get("updated_at"),
                 exploit_status=None, withdrawn=bool(record.get("withdrawn_at")),
                 malware=record.get("type")=="malware", summary=record.get("summary"),
-                references=record.get("references",[]) or [], confidence="High" if source.startswith("nextjs") else "High"
+                references=record.get("references",[]) or [], confidence="High"
             ))
     elif source == "osv":
         ids = _ids(record)
@@ -279,7 +280,7 @@ def normalize(source: str, record: dict[str, Any], package: str, version: str, e
                 source_url=next((x.get("url") for x in record.get("references",[]) if x.get("url")),None),
                 canonical_id=ghsa or cve or record.get("id",""), package=package, ecosystem=ecosystem,
                 installed_version=version, affected_versions=";".join(ranges),
-                patched_versions=fixed, severity=None, cwe=[x for x in record.get("database_specific",{}).get("cwe_ids",[])],
+                patched_versions=fixed, severity=None, cwe=[x for x in (record.get("database_specific") or {}).get("cwe_ids",[])],
                 cve=cve, ghsa=ghsa, osv=record.get("id"), published_at=record.get("published"),
                 updated_at=record.get("modified"), exploit_status=None, withdrawn=False, malware=False,
                 summary=record.get("summary"), references=[x.get("url") for x in record.get("references",[]) if x.get("url")],
