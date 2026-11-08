@@ -1,6 +1,6 @@
 ---
 name: nextjs-react-security
-description: Security audit and hardening for Next.js, React, TypeScript, Node.js, Server Actions, Route Handlers, forms, input validation, XSS, injection, CSRF, SSRF, authentication, authorization, secrets, uploads, CSP, dependencies, and production security. Use whenever reviewing or changing security-sensitive web application code.
+description: Security audit and hardening for Next.js App Router, React and TypeScript apps: Server Actions, Route Handlers, auth/authz, injection, XSS, CSRF/SSRF, uploads, caching leaks, CSP, secrets and dependency risk. Use when asked to audit, review or harden the security of such code. Not for generic OWASP questions, non-Next.js stacks or performance-only work.
 compatibility: opencode
 ---
 # nextjs-react-security
@@ -29,6 +29,10 @@ This Skill is an orchestration layer, not a generic OWASP checklist, dependency-
 14. Do not modify code unless the user explicitly authorizes fix/patch/harden/remediate/implement.
 15. Security fixes must not introduce `any`, `@ts-ignore`, unsafe casts, disabled lint rules, or suppressed compiler errors except for an extraordinary documented reason.
 16. Prefer the smallest correct security fix and preserve project conventions.
+
+## Degraded mode
+
+If Python, network access or a search provider is unavailable, audit the code locally using the references, mark every advisory or freshness claim as UNVERIFIED, state which sources were unreachable, and never report "no known vulnerabilities".
 
 ## Phase 0 — Project discovery
 
