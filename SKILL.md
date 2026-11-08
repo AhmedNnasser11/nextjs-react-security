@@ -1,6 +1,6 @@
 ---
 name: nextjs-react-security
-description: Security audit and hardening for Next.js App Router, React and TypeScript apps: Server Actions, Route Handlers, auth/authz, injection, XSS, CSRF/SSRF, uploads, caching leaks, CSP, secrets and dependency risk. Use when asked to audit, review or harden the security of such code. Not for generic OWASP questions, non-Next.js stacks or performance-only work.
+description: Security audit and hardening for Next.js App Router, React and TypeScript apps, covering Server Actions, Route Handlers, auth/authz, injection, XSS, CSRF/SSRF, uploads, caching leaks, CSP, secrets and dependency risk. Use when asked to audit, review or harden the security of such code. Not for generic OWASP questions, non-Next.js stacks or performance-only work.
 compatibility: opencode
 ---
 # nextjs-react-security
